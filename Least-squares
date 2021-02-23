@@ -1,0 +1,32 @@
+ls.smsp <- function(x, y, m = 2, lambda = NULL, interval = c(1e-06, 1)){
+  
+  n <- length(y)
+  
+  x.t <- (x-min(x))/(max(x)-min(x))
+  
+  b.basis <- create.bspline.basis(rangeval = c(0, 1), breaks = unique(x.t), norder = 2*m)
+  b.basis.e <- eval.basis(b.basis, x.t)
+  
+  if(m==1){
+    P <- diff(diag(n), differences = 1)
+    Pen.matrix <- t(P)%*%diag(1/(diff(x, differences = 1)))%*%P
+  } else {
+    Pen.matrix <- bsplinepen(b.basis, Lfdobj = m) }
+  
+  GCV <- function(lambda){
+    M1 <- crossprod(b.basis.e, b.basis.e) + lambda*Pen.matrix
+    v1 <- SparseM::solve(M1, (t(b.basis.e)%*%y) )
+    resids <- as.vector(y - b.basis.e%*%v1)
+    # hat.values <- diag(b.basis.e%*% SparseM::solve(M1, t(b.basis.e)) )
+    hat.values <- sum( t(SparseM::solve(M1, t(b.basis.e))) * b.basis.e )/length(y)
+    GCV.scores <- mean( (resids^2)/((1-hat.values)^2)  )
+    return(GCV.scores)
+  }
+  lambda1 <- ifelse(is.null(lambda), optimize(f = GCV, interval = interval)$minimum, lambda)
+  
+  beta <- SparseM::solve(crossprod(b.basis.e, b.basis.e) + lambda1*Pen.matrix, crossprod(b.basis.e, y) )
+  mu <- as.vector(b.basis.e%*%beta)
+  residuals <- y - mu
+  
+  return(list(x = x, mu = mu, Pen.matrix = Pen.matrix, lambda = lambda1, residuals = residuals))
+}
