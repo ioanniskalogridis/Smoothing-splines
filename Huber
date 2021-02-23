@@ -1,5 +1,6 @@
 require(fda)
 require(MASS)
+require(zoo)
 require(robustbase)
 require(SparseM)
 require(RobStatTM)
