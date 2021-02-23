@@ -6,7 +6,7 @@ require(SparseM)
 require(RobStatTM)
 
 huber.smsp <- function(x, y, k = 1.345, scale.type ="psr", m = 2, maxit = 50, lambda = NULL,
-                       interval = c(1e-06, 1e-01)){
+                       interval = c(1e-06, 1e-01) ){
   
   rho.huber <- function(x, k = 1.345) (abs(x) <= k ) * x^2/2 + ( abs(x) > k )* (k*abs(x)-k^2/2 )
   psi.huber <- function(x, k = 1.345) ifelse(abs(x)<= k, x, k*sign(x))
