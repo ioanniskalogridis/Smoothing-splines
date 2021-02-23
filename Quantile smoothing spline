@@ -1,9 +1,6 @@
 require(Matrix)
 require(fda)
-require(mgcv)
 require(MASS)
-require(pracma)
-require(robustbase)
 require(SparseM)
 
 quan.smsp <- function(x, y, alpha = 0.5, tuning = 1e-04, maxit = 50, m = 2, 
