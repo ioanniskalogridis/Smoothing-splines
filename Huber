@@ -1,0 +1,95 @@
+require(Matrix)
+require(fda)
+require(MASS)
+require(robustbase)
+require(SparseM)
+require(RobStatTM)
+
+huber.smsp <- function(x, y, k = 1.345, scale.type ="psr", m = 2, maxit = 50, lambda = NULL,
+                       interval = c(1e-06, 1e-01)){
+  
+  rho.huber <- function(x, k = 1.345) (abs(x) <= k ) * x^2/2 + ( abs(x) > k )* (k*abs(x)-k^2/2 )
+  psi.huber <- function(x, k = 1.345) ifelse(abs(x)<= k, x, k*sign(x))
+  weights.huber <- function(x, k = 1.345) ifelse( x==0, 1, psi.huber(x, k = k)/ (x) )
+  
+  M.step <- function(X, y, k = 1.345, tol = 1e-08, lambda, Pen.matrix, scale = 1, resids.in, maxit = 50){
+    
+    ic = 0
+    istop = 0
+    while(istop == 0 & ic <= maxit){
+      ic = ic + 1
+      weights.prelim <- weights.huber(resids.in/scale, k = k)
+      X.s <- as.matrix(scale(t(X), center = FALSE, scale = 1/weights.prelim))
+      M1 <-  X.s%*%X + 2*scale^2*lambda*Pen.matrix
+      M2 <- X.s%*%as.matrix(y)
+      v1 = SparseM::solve( M1, M2)
+      resids1 <- as.vector(y-X%*%v1)
+      check = max( abs(resids1-resids.in)/scale) 
+      if(check < tol){istop =1}
+      resids.in <- resids1
+    }
+    weights1 = as.vector(weights.huber(resids1/scale,  k = k) )
+    
+    fitted.values = as.vector(X%*%v1)
+    resids = y - fitted.values
+    hat.values = sum( t(SparseM::solve(M1, X.s)) * X )/length(y)
+    # hat.values <- diag(X%*%SparseM::solve(M1, X.s))
+    
+    return(list(resids = resids, beta.hat = v1, hat.values = hat.values, 
+                weights = weights1, fitted = fitted.values, ic = ic, check = check ) )
+  }
+  
+  n <- length(y)
+  
+  x.t <- (x-min(x))/(max(x)-min(x))
+  
+  b.basis <- create.bspline.basis(rangeval = c(0, 1), breaks = unique(x.t), norder = 2*m)
+  b.basis.e <- eval.basis(b.basis, x.t)
+  
+  if(m==1){
+    P <- diff(diag(n), differences = 1)
+    Pen.matrix <- t(P)%*%diag(1/(diff(x, differences = 1)))%*%P
+  } else {
+    Pen.matrix <- bsplinepen(b.basis, Lfdobj = m) }
+  
+  if(scale.type == "psr"){
+    fit.in <- smooth.spline(x, y)
+    resids.in <- y - predict(fit.in, x)$y
+    pseudo = rollapply(y, 2, FUN = function(s) s[2]-s[1])
+    scale = scaleM(pseudo, delta = 3/4, tuning.chi = sqrt(2)*0.70417 )
+    
+    GCV <- function(lambda){
+      fit.r <- M.step(X = b.basis.e,  y = y, lambda = lambda, Pen.matrix = Pen.matrix, scale = scale, 
+                      resids.in = resids.in, maxit = maxit, k = k)
+      GCV.scores <-  mean( fit.r$weights*((fit.r$resids)^2) /((1-fit.r$hat.values)^2) )
+      return(GCV.scores)
+    }
+    lambda1 <- ifelse(is.null(lambda), optimize(f = GCV, interval = interval)$minimum, lambda)
+    
+    fit.rf <- M.step(X = b.basis.e,  y = y, lambda = lambda1, Pen.matrix = Pen.matrix, scale = scale,
+                     resids.in = resids.in, maxit = maxit, k =k)
+    
+    mu <- as.vector(b.basis.e%*%fit.rf$beta.hat)
+    
+  } else {
+    fit.l1 <- quan.smsp(x, y, alpha = 0.5, m = m, interval = interval)
+    scale = scaleTau2(fit.l1$resids)
+    resids.in = fit.l1$resids
+    
+    GCV <- function(lambda){
+      fit.r <- M.step(X = b.basis.e,  y = y, lambda = lambda, Pen.matrix = Pen.matrix, scale = scale, 
+                      resids.in = resids.in, maxit = maxit, k = k)
+      GCV.scores <-  mean( fit.r$weights*((fit.r$resids)^2) /((1-fit.r$hat.values)^2) )
+      return(GCV.scores)
+    }
+    lambda1 <- ifelse(is.null(lambda), optimize(f = GCV, interval = interval)$minimum, lambda)
+    
+    fit.rf <- M.step(X = b.basis.e,  y = y, lambda = lambda1, Pen.matrix = Pen.matrix, scale = scale,
+                     resids.in = resids.in, maxit = maxit, k = k)
+    
+    mu <- as.vector(b.basis.e%*%fit.rf$beta.hat)
+  }
+  
+  return(list(mu = mu, weights = fit.rf$weights, Pen.matrix = Pen.matrix, fitted = fit.rf$fitted, 
+              lambda = lambda1, scale = scale, resids = fit.rf$resids))
+}
