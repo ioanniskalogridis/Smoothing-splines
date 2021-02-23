@@ -1,0 +1,77 @@
+## First load the airquality data (De Vito et al., (2008))
+
+airq <- read.csv(file = file.choose(), dec = ",", sep = ";")
+
+airq <- subset(airq, T!=-200 & NOx.GT. >0) # remove NAs
+airq <- airq[order(airq$T), ] #order by Tempterature, the predictor variable
+
+# Analysis with respect to Benzene
+
+x = airq[, 12] # Temperature
+y = airq[, 5] # Benzene
+plot(x, y, pch = 20)
+fit.huber1 <- huber.smsp(x = x, y = y, k  = 0.70, interval = c(1e-07, 1e-05)) 
+# Lambda will be selected in the interval (1e-07, 1e-05) via optimization of the weighted GCV criterion
+# The efficacy of this and the other intervals may be verified by plotting the weighted GCV criterion
+
+fit.ls1 <- smooth.spline(x, y, all.knots = TRUE)
+lines(x, fit.huber1$mu, lwd = 3, col = "blue")
+lines(x, predict(fit.ls1, x)$y, lwd = 3, col = "red")
+
+# Left panel of Figure 1
+par(mar = c(5.1, 4.1, 2.1, 1.1))
+par(mgp = c(2.6, 1, 0))
+data <- data.frame(x, y)
+data$weights <- cut(fit.huber1$weights, breaks = c(0, 0.3333, 0.6666, 1))
+plot(x, y, col = c("#D9514EFF", "#2A2B2DFF", "#2DA8D8FF")[data$weights], pch = c(17, 18, 19)[data$weights], 
+     cex = 1.3, cex.lab = 2, cex.axis = 2, xlab = "Temperature (C\u00B0)", ylab = "Benzene (mcg/cm)") ; grid()
+lines(x, fit.huber1$mu, lwd = 3, col = "blue")
+lines(x, predict(fit.ls1, x)$y, lwd = 3, col = "red", lty = 2)
+
+fit.quan1 <- quan.smsp(x =x, y = y, alpha = 0.1, m = 2, interval = c(1e-05, 1e-03), maxit = 100)
+fit.quan2 <- quan.smsp(x =x, y = y, alpha = 0.3, m = 2, interval = c(1e-05, 1e-03), maxit = 100)
+fit.quan3 <- quan.smsp(x =x, y = y, alpha = 0.5, m = 2, interval = c(1e-05, 2e-03), maxit = 100)
+fit.quan4 <- quan.smsp(x =x, y = y, alpha = 0.7, m = 2, interval = c(1e-06, 1e-03), maxit = 100)
+fit.quan5 <- quan.smsp(x =x, y = y, alpha = 0.9, m = 2, interval = c(1e-05, 1e-03), maxit= 100)
+
+# Left panel of Figure 2
+plot(x, y, pch = 20, col = "gray", cex = 1.3,  cex.lab = 2, cex.axis = 2, xlab = "Temperature (C\u00B0)",
+     ylab = "Benzene (mcg/cm)")
+lines(x, fit.quan1$mu, lwd = 3, col = rgb(0, 1, 0), lty = 2)
+lines(x, fit.quan2$mu, lwd = 3, col = "darkgreen", lty = 3)
+lines(x, fit.quan3$mu, lwd = 3, col = rgb(0.4980392, 0.4980392, 0.4980392), lty = 1)
+lines(x, fit.quan4$mu, lwd = 3, col = rgb(0.7490196, 0.2470588, 0.7490196), lty = 4)
+lines(x, fit.quan5$mu, lwd = 3, col = rgb(1, 0, 1), lty = 5)
+
+# Analysis with respect to NOx
+
+x = airq[, 12] # Temperature
+y = airq[, 7] # NOx
+plot(x, y, pch = 20)
+fit.huber2 <- huber.smsp(x = x, y = y, k  = 0.70, interval = c(1e-08, 5e-07))
+fit.ls2 <- smooth.spline(x, y, all.knots = TRUE)
+lines(x, fit.huber2$mu, lwd = 3, col = "blue")
+lines(x, predict(fit.ls2, x)$y, lwd = 3, col = "red")
+
+par(mar = c(5.1, 4.1, 2.1, 1.1))
+par(mgp = c(2.6, 1, 0))
+data <- data.frame(x, y)
+data$weights <- cut(fit.huber2$weights, breaks = c(0, 0.3333, 0.6666, 1))
+plot(x, y, col = c("#D9514EFF", "#2A2B2DFF", "#2DA8D8FF")[data$weights], pch = c(17, 18, 19)[data$weights], 
+     cex = 1.3, cex.lab = 2, cex.axis = 2, xlab = "Temperature (C\u00B0)", ylab = "NOx (ppb)") ; grid()
+lines(x, fit.huber2$mu, lwd = 3, col = "blue")
+lines(x, predict(fit.ls2, x)$y, lwd = 3, col = "red", lty = 2)
+
+fit.quan12 <- quan.smsp(x =x, y = y, alpha = 0.1, m = 2,interval = c(3e-05, 1e-03), maxit = 100)
+fit.quan22 <- quan.smsp(x =x, y = y, alpha = 0.3, m = 2,interval = c(1e-05, 1e-03), maxit = 100)
+fit.quan32 <- quan.smsp(x =x, y = y, alpha = 0.5, m = 2, interval =  c(1e-05, 1e-03), maxit = 100)
+fit.quan42 <- quan.smsp(x =x, y = y, alpha = 0.7, m = 2,interval =  c(1e-05, 1e-03), maxit = 100)
+fit.quan52 <- quan.smsp(x =x, y = y, alpha = 0.9, m = 2, interval =  c(1e-07, 1e-05), maxit = 100)
+
+plot(x, y, pch = 20, col = "gray", cex = 1.3,  cex.lab = 2, cex.axis = 2, xlab = "Temperature (C\u00B0)",
+     ylab = "NOx(ppb)")
+lines(x, fit.quan12$mu, lwd = 3, col = rgb(0, 1, 0), lty = 2)
+lines(x, fit.quan22$mu, lwd = 3, col = "darkgreen", lty = 3)
+lines(x, fit.quan32$mu, lwd = 3, col = rgb(0.4980392, 0.4980392, 0.4980392), lty = 1)
+lines(x, fit.quan42$mu, lwd = 3, col = rgb(0.7490196, 0.2470588, 0.7490196), lty = 4)
+lines(x, fit.quan52$mu, lwd = 3, col = rgb(1, 0, 1), lty = 5)
