@@ -1,0 +1,129 @@
+require(EnvStats)
+require(sn)
+  
+  nrep <- 1000
+  n <- 60
+  x <- seq(1/(2*n), (n-1/2)/n, len = n)
+ 
+  msq.ls <- rep(NA, nrep)
+  msq.l1 <- rep(NA, nrep)
+  msq.ps <- rep(NA, nrep)
+  msq.pr <- rep(NA, nrep)
+  
+  f.reg <- cos(2*pi*x)
+  
+  for(i in 1:nrep){
+    print(i)
+    
+    # y <- f.reg + rst(n = n, nu = 3, alpha = 2)
+    y <- f.reg + rnorm(n)
+    # y <- f.reg + rnorm(n)/runif(n)
+    # y <- f.reg +  rnormMix(n, mean1 = 0, sd1 = 1, mean2 = 0, sd2 = 9, p.mix = 0.15)
+    # y <- f.reg + rt(n, df = 3)
+    
+    fit.huber.ps <- huber.smsp(x = x, y = y, m = 2, interval = c(7e-04, 2e-02) )
+    fit.l1 <- quan.smsp(x = x, y = y, alpha = 0.5,  m = 2, interval =c(3e-04, 1e-02))
+    fit.ls <- ls.smsp(x = x, y = y, m = 2, interval = c(1e-04, 1e-02)
+    fit.huber.pr <- huber.smsp(x = x, y = y, scale.type ="p",  interval = c(7e-04, 2e-02))
+   
+    plot(x, y, cex = 1.3, pch = 20, cex.axis = 2, cex.lab = 2, xlab ="t") ; grid()
+    lines(x, f.reg, lwd = 3)
+    lines(x, fit.l1$mu, lwd = 3, col = "blue")
+    lines(x, fit.huber.ps$mu, lwd = 3, col = "red", lty = 2)
+    lines(x, fit.huber.pr$mu, lwd = 3, col = "green")
+
+    msq.ls[i] <- mean( (fit.ls$mu-f.reg)^2 )
+    msq.l1[i] <- mean( (fit.l1$mu-f.reg)^2 )
+    msq.ps[i] <- mean( (fit.huber.ps$mu-f.reg)^2 )
+    msq.pr[i] <- mean( (fit.huber.pr$mu-f.reg)^2 )
+  }
+mean(msq.ls, na.rm = TRUE) ; sd(msq.ls, na.rm = TRUE)/sqrt(length(msq.ls))
+mean(msq.l1, na.rm = TRUE) ; sd(msq.l1, na.rm = TRUE)/sqrt(length(msq.l1))
+mean(msq.ps, na.rm = TRUE); sd(msq.ps, na.rm = TRUE)/sqrt(length(msq.ps))
+mean(msq.pr, na.rm = TRUE) ; sd(msq.pr, na.rm = TRUE)/sqrt(length(msq.pr))
+
+nrep <- 1000
+n <- 60
+x <- seq(1/(2*n), (n-1/2)/n, len = n)
+# x <- sort(runif(n))
+
+msq.ls <- rep(NA, nrep)
+msq.l1 <- rep(NA, nrep)
+msq.ps <- rep(NA, nrep)
+msq.pr <- rep(NA, nrep)
+
+f.reg <- 1/(1+exp(-20*(x-0.5)))
+
+for(i in 1:nrep){
+  print(i)
+  
+  # y <- f.reg + rst(n = n, nu = 3, alpha = 2)
+  y <- f.reg + rnorm(n)
+  # y <- f.reg + rnorm(n)/runif(n)
+  # y <- f.reg +  rnormMix(n, mean1 = 0, sd1 = 1, mean2 = 0, sd2 = 9, p.mix = 0.15)
+  # y <- f.reg + rt(n, df = 3)
+  
+  fit.huber.ps <- huber.smsp(x = x, y = y, m = 2, interval = c(1e-03, 1e-01 ) )
+  fit.l1 <- quan.smsp(x = x, y = y, alpha = 0.5,  m = 2, interval =c(1e-03, 1e-01))
+  fit.ls <- ls.smsp(x = x, y = y, m = 2, interval = c(1e-03, 1e-01))
+  fit.huber.pr <- huber.smsp(x = x, y = y, scale.type ="p",  interval = c(1e-03, 1e-01))
+  
+  plot(x, y, cex = 1.3, pch = 20, cex.axis = 2, cex.lab = 2, xlab ="t") ; grid()
+  lines(x, f.reg, lwd = 3)
+  lines(x, fit.l1$mu, lwd = 3, col = "blue")
+  lines(x, fit.huber.ps$mu, lwd = 3, col = "red", lty = 2)
+  lines(x, fit.huber.pr$mu, lwd = 3, col = "green")
+  lines(x, fit.ls$mu, lwd = 3, col = "orange")
+  
+  msq.ls[i] <- try(mean( (fit.ls$mu-f.reg)^2 ), silent = TRUE)
+  msq.l1[i] <- try(mean( (fit.l1$mu-f.reg)^2 ), silent = TRUE)
+  msq.ps[i] <- try(mean( (fit.huber.ps$mu-f.reg)^2 ), silent = TRUE)
+  msq.pr[i] <- try(mean( (fit.huber.pr$mu-f.reg)^2 ), silent = TRUE)
+}
+mean(msq.ls, na.rm = TRUE) ; sd(msq.ls, na.rm = TRUE)/sqrt(length(msq.ls))
+mean(msq.l1, na.rm = TRUE) ; sd(msq.l1, na.rm = TRUE)/sqrt(length(msq.l1))
+mean(msq.ps, na.rm = TRUE); sd(msq.ps, na.rm = TRUE)/sqrt(length(msq.ps))
+mean(msq.pr, na.rm = TRUE) ; sd(msq.pr, na.rm = TRUE)/sqrt(length(msq.pr))
+
+
+nrep <- 1000
+n <- 60
+x <- seq(1/(2*n), (n-1/2)/n, len = n)
+
+msq.ls <- rep(NA, nrep)
+msq.l1 <- rep(NA, nrep)
+msq.ps <- rep(NA, nrep)
+msq.pr <- rep(NA, nrep)
+
+f.reg <- sin(2*pi*x) + exp(-3*(x-0.5)^2)
+
+for(i in 1:nrep){
+  print(i)
+  
+  # y <- f.reg + rst(n = n, nu = 3, alpha = 2)
+  y <- f.reg + rnorm(n)
+  # y <- f.reg + rnorm(n)/runif(n)
+  # y <- f.reg +  rnormMix(n, mean1 = 0, sd1 = 1, mean2 = 0, sd2 = 9, p.mix = 0.15)
+  # y <- f.reg + rt(n, df = 3)
+  
+  fit.huber.ps <- huber.smsp(x = x, y = y, m = 2, interval = c(1e-03, 1e-02 ) )
+  fit.l1 <- quan.smsp(x = x, y = y, alpha = 0.5,  m = 2, interval =c(1e-03, 1e-02))
+  fit.ls <- ls.smsp(x = x, y = y, m = 2, interval = c(2e-04, 2e-03))
+  fit.huber.pr <- huber.smsp(x = x, y = y, scale.type ="p",  interval =  c(1e-03, 1e-02 ))
+  
+  plot(x, y, cex = 1.3, pch = 20, cex.axis = 2, cex.lab = 2, xlab ="t") ; grid()
+  lines(x, f.reg, lwd = 3)
+  lines(x, fit.l1$mu, lwd = 3, col = "blue")
+  lines(x, fit.huber.ps$mu, lwd = 3, col = "red")
+  lines(x, fit.huber.pr$mu, lwd = 3, col = "green")
+  lines(x, fit.ls$mu, lwd = 3, col = "orange")
+  
+  msq.ls[i] <- try(mean( (fit.ls$mu-f.reg)^2 ), silent = TRUE)
+  msq.l1[i] <- try(mean( (fit.l1$mu-f.reg)^2 ), silent = TRUE)
+  msq.ps[i] <- try(mean( (fit.huber.ps$mu-f.reg)^2 ), silent = TRUE)
+  msq.pr[i] <- try(mean( (fit.huber.pr$mu-f.reg)^2 ), silent = TRUE)
+}
+mean(msq.ls, na.rm = TRUE) ; sd(msq.ls, na.rm = TRUE)/sqrt(length(msq.ls))
+mean(msq.l1, na.rm = TRUE) ; sd(msq.l1, na.rm = TRUE)/sqrt(length(msq.l1))
+mean(msq.ps, na.rm = TRUE); sd(msq.ps, na.rm = TRUE)/sqrt(length(msq.ps))
+mean(msq.pr, na.rm = TRUE) ; sd(msq.pr, na.rm = TRUE)/sqrt(length(msq.pr))
