@@ -1,6 +1,6 @@
 ## First load the airquality data (De Vito et al., (2008))
 
-airq <- read.csv(file = file.choose(), dec = ",", sep = ";")
+airq <- read.csv(file = file.choose(), dec = ",", sep = ";" )
 
 airq <- subset(airq, T!=-200 & NOx.GT. >0) # remove NAs
 airq <- airq[order(airq$T), ] #order by Tempterature, the predictor variable
