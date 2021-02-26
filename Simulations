@@ -63,10 +63,10 @@ for(i in 1:nrep){
   # y <- f.reg +  rnormMix(n, mean1 = 0, sd1 = 1, mean2 = 0, sd2 = 9, p.mix = 0.15)
   # y <- f.reg + rt(n, df = 3)
   
-  fit.huber.ps <- huber.smsp(x = x, y = y, m = 2, interval = c(1e-03, 1e-01 ) )
-  fit.l1 <- quan.smsp(x = x, y = y, alpha = 0.5,  m = 2, interval =c(1e-03, 1e-01))
-  fit.ls <- ls.smsp(x = x, y = y, m = 2, interval = c(1e-03, 1e-01))
-  fit.huber.pr <- huber.smsp(x = x, y = y, scale.type ="p",  interval = c(1e-03, 1e-01))
+  fit.huber.ps <- huber.smsp(x = x, y = y, m = 2, interval = c(7e-04, 2e-01 ) )
+  fit.l1 <- quan.smsp(x = x, y = y, alpha = 0.5,  m = 2, interval =c(1e-03, 1e-02))
+  fit.ls <- ls.smsp(x = x, y = y, m = 2, interval = c(6e-04, 1e-01))
+  fit.huber.pr <- huber.smsp(x = x, y = y, scale.type ="p",  interval = c(7e-04, 2e-01))
   
   plot(x, y, cex = 1.3, pch = 20, cex.axis = 2, cex.lab = 2, xlab ="t") ; grid()
   lines(x, f.reg, lwd = 3)
